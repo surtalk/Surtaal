@@ -1,0 +1,26 @@
+name: surtaal_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^2.32.0  # Firebase core package
+  cloud_firestore: ^4.8.0  # For Firestore database
+  firebase_auth: ^4.20.0  # For authentication
+  firebase_storage: ^11.6.5  # For file uploads (photos/videos)
+  fluttertoast: ^8.2.8
+  google_sign_in: ^6.2.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/google_logo.png

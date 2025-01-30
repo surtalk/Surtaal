@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "685933490724",
+    "project_id": "surtaal-2326f",
+    "storage_bucket": "surtaal-2326f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685933490724:android:1246d78e4d5227d7badeb1",
+        "android_client_info": {
+          "package_name": "com.example.surtaal_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBomISbAxf8iEL7Jz2i0vQ4f862pobhFqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
