@@ -49,7 +49,26 @@ class _LoginScreenState extends State<LoginScreen> {
     if (user != null) {
       // Redirect to the Home screen after successful login
      Fluttertoast.showToast(msg: "Login Successful!");
-     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+          if (userDoc.exists) {
+            String role = userDoc['role']; // Get the user's role from Firestore
+
+            // Redirect based on the role
+            if (role == 'admin') {
+              // Navigate to admin home screen
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => DashboardScreen()),
+              );
+            } else {
+              // Navigate to user home screen
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            }
+            }
     }
     return userCredential.user;
   } catch (e) {
@@ -101,12 +120,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Login")),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/surtaal_logo.jpg',
+              fit: BoxFit.cover, // Cover the entire screen
+            ),
+          ), 
+        Center(     
         child: Form(
           key: _formKey,
           child: Column(
@@ -154,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: <Widget>[
                         Image.asset(
                           'assets/google_logo.png',  // Path to your Google logo
-                          height: 30,  // Adjust the size of the logo
+                          height: 50,  // Adjust the size of the logo
                         ),                        
                       ],
                     ),
@@ -178,6 +207,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
+    ]
+    ),
+    );  
   }
 }

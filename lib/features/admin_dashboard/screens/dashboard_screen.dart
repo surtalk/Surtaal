@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../login_screen.dart';
+import '../../../features/admin_dashboard/screens/student_screen.dart';
 class DashboardScreen extends StatelessWidget {
   final _authRepository = AuthRepository();
 
@@ -21,9 +22,21 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Text('Welcome to the Admin Dashboard!'),
-      ),
+     body: ListView(
+        children: [
+          ListTile(
+            title: Text("Manage Students"),
+            leading: Icon(Icons.people),
+            onTap: () {
+              // Navigate to Students Management screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => StudentsScreen()),
+              );
+            },
+          ),
+        ],
+     ),
     );
   }
 }
