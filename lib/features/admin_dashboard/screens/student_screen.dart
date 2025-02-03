@@ -14,15 +14,52 @@ class _StudentsScreenState extends State<StudentsScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _myobIdController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+    final TextEditingController _emailController = TextEditingController();
   DateTime? _selectedDob;
+    DateTime? _startDate;
 
   // Show Add/Edit Dialog
-  void _showStudentDialog({String? docId, String? name, String? myobId, String? phone, DateTime? dob}) {
+  void _showStudentDialog({String? docId, String? name, String? myobId, String? phone, DateTime? dob, String? email, DateTime? startDate}) {
     _nameController.text = name ?? "";
     _myobIdController.text = myobId ?? "";
     _phoneController.text = phone ?? "";
+    _emailController.text = email ?? "";
+    
     _selectedDob = dob;
+    _startDate = startDate;
 
+    TextEditingController dobController = TextEditingController();
+    void _selectDate(BuildContext context) async {
+      DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2100),
+      );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDob = picked;
+        dobController.text = "${picked.day}/${picked.month}/${picked.year}"; // Format date
+      });
+    }
+    }
+    TextEditingController startDateController = TextEditingController();
+    void _selectStartDateDate(BuildContext context) async {
+      DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2100),
+      );
+
+    if (picked != null) {
+      setState(() {
+        _startDate = picked;
+        startDateController.text = "${picked.day}/${picked.month}/${picked.year}"; // Format date
+      });
+    }
+    }
     showDialog(
       context: context,
       builder: (context) {
@@ -30,28 +67,42 @@ class _StudentsScreenState extends State<StudentsScreen> {
           title: Text(docId == null ? "Add Student" : "Edit Student"),
           content: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
               children: [
                 TextField(controller: _nameController, decoration: InputDecoration(labelText: "Name")),
                 TextField(controller: _myobIdController, decoration: InputDecoration(labelText: "MYOB ID")),
-                TextField(controller: _phoneController, decoration: InputDecoration(labelText: "Phone")),
-                SizedBox(height: 10),
-                TextButton(
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDob ?? DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
-                    );
-                    if (pickedDate != null) {
-                      setState(() {
-                        _selectedDob = pickedDate;
-                      });
-                    }
-                  },
-                  child: Text(_selectedDob == null ? "Select DOB" : "DOB: ${_selectedDob!.day}-${_selectedDob!.month}-${_selectedDob!.year}"),
+                TextField(controller: _phoneController, decoration: InputDecoration(labelText: "Mobile")),
+                TextFormField(controller: _emailController, 
+                         keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(labelText: "Email"),
+                          ),
+                TextField(
+                controller: dobController,
+                readOnly: true, // Prevent manual input
+                decoration: InputDecoration(
+                  labelText: "Date of Birth",
+                  hintText: "Select your DOB",
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.calendar_today),
+                    onPressed: () => _selectDate(context),
+                  ),
                 ),
+                ),
+                SizedBox(height: 20),                
+                TextField(
+                controller: startDateController,
+                readOnly: true, // Prevent manual input
+                decoration: InputDecoration(
+                  labelText: "Start Date",
+                  hintText: "First Class",
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.calendar_today),
+                    onPressed: () => _selectStartDateDate(context),
+                  ),
+                ),
+                ),
+                SizedBox(height: 20),               
+            
               ],
             ),
           ),
@@ -62,11 +113,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 if (_nameController.text.isNotEmpty && _myobIdController.text.isNotEmpty && _phoneController.text.isNotEmpty && _selectedDob != null) {
                   if (docId == null) {
                     _firestoreService.addStudent(
-                      _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, "test@test.com", _selectedDob!
+                      _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, _emailController.text, _startDate!
                     );
                   } else {
                     _firestoreService.updateStudent(
-                      docId, _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, "test@test.com", _selectedDob!
+                      docId, _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, _emailController.text, _startDate!
                     );
                   }
                   Navigator.pop(context);
@@ -121,10 +172,13 @@ class _StudentsScreenState extends State<StudentsScreen> {
               DateTime dob = (student['dob'] as Timestamp).toDate();
               String formattedDob = "${dob.day}-${dob.month}-${dob.year}";
 
+              DateTime startDate = (student['startDate'] as Timestamp).toDate();
+              String formattedstartDate = "${dob.day}-${dob.month}-${dob.year}";
+
               return Card(
                 child: ListTile(
                   title: Text(student['name']),
-                  subtitle: Text("MYOB ID: ${student['myob_Id']} | Phone: ${student['mobile']} | DOB: $formattedDob"),
+                  subtitle: Text("MYOB ID: ${student['myob_Id']} | Phone: ${student['mobile']} | DOB: $formattedDob | E-mail: ${student['email']}"),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -134,7 +188,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           name: student['name'],
                           myobId: student['myob_Id'],
                           phone: student['mobile'],
+                          email: student['email'],
                           dob: dob,
+                          startDate: startDate,
                         );
                       }),
                       IconButton(icon: Icon(Icons.delete, color: Colors.red), onPressed: () {
