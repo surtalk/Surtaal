@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../login_screen.dart';
+import 'class_management.dart';
 import '../../../features/admin_dashboard/screens/student_screen.dart';
 class DashboardScreen extends StatelessWidget {
   final _authRepository = AuthRepository();
@@ -22,8 +23,13 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-     body: ListView(
+      drawer: Drawer(
+      child: ListView(
         children: [
+           DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Text("Admin Menu", style: TextStyle(color: Colors.white, fontSize: 24)),
+            ),
           ListTile(
             title: Text("Manage Students"),
             leading: Icon(Icons.people),
@@ -35,8 +41,20 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+           ListTile(
+              leading: Icon(Icons.class_),
+              title: Text("Manage Classes"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ClassesManagementScreen()),
+                );
+              },
+            ),
         ],
      ),
+    ),
     );
   }
 }
