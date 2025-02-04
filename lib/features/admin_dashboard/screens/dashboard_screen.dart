@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../login_screen.dart';
 import 'class_management.dart';
+import 'class_attendance.dart';
+import 'attendance_report.dart';
 import '../../../features/admin_dashboard/screens/student_screen.dart';
 class DashboardScreen extends StatelessWidget {
   final _authRepository = AuthRepository();
@@ -49,6 +51,30 @@ class DashboardScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ClassesManagementScreen()),
+                );
+              },
+            ),
+             ListTile(
+              leading: Icon(Icons.check),
+              title: Text("Class Attendance"),
+              onTap: () {
+                // Close the drawer and navigate to ClassAttendanceScreen.
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ClassAttendanceScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.bar_chart),
+              title: Text("Attendance Report"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AttendanceReportScreen()),
                 );
               },
             ),
