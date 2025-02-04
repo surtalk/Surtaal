@@ -15,6 +15,18 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  double _logoOpacity = 0.0; // Initial opacity for fade-in effect
+  @override
+  void initState() {
+    super.initState();
+    
+    // Trigger the fade-in animation after a small delay
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _logoOpacity = 1.0;
+      });
+    });
+  }
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final _formKey = GlobalKey<FormState>();
@@ -125,20 +137,32 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
-      body: Stack(
-        children: [
-          // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/surtaal_logo.jpg',
-              fit: BoxFit.cover, // Cover the entire screen
+     backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text("Login"),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animated Logo with Fade-in Effect
+            AnimatedOpacity(
+              opacity: _logoOpacity, // Controls the animation
+              duration: Duration(seconds: 2), // Fade-in duration
+              curve: Curves.easeIn, // Smooth ease-in effect
+              child: Image.asset(
+                'assets/images/surtaal_logo.jpg', // Ensure your logo is in the assets folder
+                width: 120,
+                height: 120,
+                fit: BoxFit.contain,
+              ),
             ),
-          ), 
-        Center(     
-        child: Form(
-          key: _formKey,
-          child: Column(
+
+            SizedBox(height: 20), // Space between logo and form fields
+        Expanded(
+              child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextFormField(
@@ -206,8 +230,8 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-      ),
-    ]
+      ]
+      ),    
     ),
     );  
   }
