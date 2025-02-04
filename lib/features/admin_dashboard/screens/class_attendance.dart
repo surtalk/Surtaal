@@ -1,10 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-///
-/// ClassAttendanceScreen: Admin chooses a class, selects a date,
-/// and marks attendance for all students in the class.
-///
+
 class ClassAttendanceScreen extends StatefulWidget {
   @override
   _ClassAttendanceScreenState createState() => _ClassAttendanceScreenState();
@@ -16,7 +12,10 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
   DateTime? selectedDate;
   // Map to store attendance status for each student (studentId -> present)
   Map<String, bool> attendance = {};
+  // If an attendance record exists for the selected class and date, its document ID is stored here.
+  String? existingAttendanceDocId;
 
+  /// Fetches a list of classes from Firestore.
   Future<List<Map<String, dynamic>>> fetchClasses() async {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('classes')
@@ -31,18 +30,25 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
     }).toList();
   }
 
+  /// Called when a class is selected.
   void onClassSelected(Map<String, dynamic> selectedClass) {
     setState(() {
       selectedClassId = selectedClass['id'];
       selectedClassName = selectedClass['name'];
+      // Reset attendance map
       attendance = {};
       List<dynamic> students = selectedClass['students'] ?? [];
       for (var student in students) {
-        attendance[student['id']] = false;
+        attendance[student['id']] = false; // default: absent
       }
     });
+    // If a date is already selected, check if attendance exists.
+    if (selectedDate != null) {
+      _checkExistingAttendance();
+    }
   }
 
+  /// Opens a date picker and then checks for an existing attendance record.
   Future<void> _selectDate() async {
     DateTime now = DateTime.now();
     final DateTime? picked = await showDatePicker(
@@ -52,12 +58,62 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
       lastDate: DateTime(now.year + 1),
     );
     if (picked != null) {
+      // Normalize the date to remove time component (if needed)
+      DateTime normalized = DateTime(picked.year, picked.month, picked.day);
       setState(() {
-        selectedDate = picked;
+        selectedDate = normalized;
+      });
+      // If a class is selected, check if attendance exists.
+      if (selectedClassId != null) {
+        _checkExistingAttendance();
+      }
+    }
+  }
+
+  /// Checks Firestore for an existing attendance record for the selected class and date.
+  Future<void> _checkExistingAttendance() async {
+    if (selectedClassId == null || selectedDate == null) return;
+
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('attendance')
+        .where('classId', isEqualTo: selectedClassId)
+        .where('date', isEqualTo: Timestamp.fromDate(selectedDate!))
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      // Assume only one record exists per class and date.
+      var doc = snapshot.docs.first;
+      existingAttendanceDocId = doc.id;
+      // Pre-populate the attendance map from the existing record.
+      List<dynamic> attendanceList = doc['attendance'] ?? [];
+      setState(() {
+        attendance = {};
+        for (var record in attendanceList) {
+          // record is expected to have 'studentId' and 'present'
+          attendance[record['studentId']] = record['present'];
+        }
+      });
+    } else {
+       // No attendance record exists: reset the form.
+      existingAttendanceDocId = null;
+      // Reinitialize attendance based on the current class's student list.
+      DocumentSnapshot classDoc = await FirebaseFirestore.instance
+          .collection('classes')
+          .doc(selectedClassId)
+          .get();
+      Map<String, dynamic> classData =
+          classDoc.data() as Map<String, dynamic>? ?? {};
+      List<dynamic> students = classData['students'] ?? [];
+      setState(() {
+        attendance = {};
+        for (var student in students) {
+          attendance[student['id']] = false; // default: absent
+        }
       });
     }
   }
 
+  /// Saves the attendance record.
   Future<void> _saveAttendance() async {
     if (selectedClassId == null || selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,11 +121,8 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
       return;
     }
 
-    // Build attendance list including student name.
-    // (Assumes that the selected class's student list contains student names.)
-    List<Map<String, dynamic>> attendanceData = [];
-    List<Map<String, dynamic>> studentList = [];
-    // We fetch the class document to get student details.
+    // Build attendance list with student details.
+    // Here we fetch the class document to get the student names.
     DocumentSnapshot classDoc = await FirebaseFirestore.instance
         .collection('classes')
         .doc(selectedClassId)
@@ -77,6 +130,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
     Map<String, dynamic> classData =
         classDoc.data() as Map<String, dynamic>? ?? {};
     List<dynamic> students = classData['students'] ?? [];
+    List<Map<String, dynamic>> attendanceData = [];
     for (var student in students) {
       String id = student['id'];
       String name = student['name'];
@@ -88,22 +142,37 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
       });
     }
 
-    await FirebaseFirestore.instance.collection('attendance').add({
+    Map<String, dynamic> attendanceRecord = {
       'classId': selectedClassId,
       'className': selectedClassName,
       'date': selectedDate,
       'attendance': attendanceData,
       'timestamp': FieldValue.serverTimestamp(),
-    });
+    };
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("Attendance saved successfully")));
+    if (existingAttendanceDocId != null) {
+      // Update the existing attendance record.
+      await FirebaseFirestore.instance
+          .collection('attendance')
+          .doc(existingAttendanceDocId)
+          .update(attendanceRecord);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Attendance updated successfully")));
+    } else {
+      // Create a new attendance record.
+      await FirebaseFirestore.instance
+          .collection('attendance')
+          .add(attendanceRecord);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Attendance saved successfully")));
+    }
 
+    // Optionally, reset selections (or keep them for further updates)
     setState(() {
-      selectedClassId = null;
-      selectedClassName = null;
+      // Keep class selection but clear date and attendance map if desired.
       selectedDate = null;
       attendance = {};
+      existingAttendanceDocId = null;
     });
   }
 
@@ -111,7 +180,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Class Attendance"),
+        title: Text("Class - Attendance"),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchClasses(),
@@ -127,6 +196,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Class selection dropdown.
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(labelText: "Select Class"),
                   value: selectedClassId,
@@ -145,6 +215,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                   },
                 ),
                 SizedBox(height: 16),
+                // Date selection.
                 Row(
                   children: [
                     Expanded(
@@ -161,6 +232,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                   ],
                 ),
                 SizedBox(height: 16),
+                // Attendance checkboxes for each student.
                 if (attendance.isNotEmpty) ...[
                   Text(
                     "Mark Attendance:",
@@ -201,7 +273,9 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                 Center(
                   child: ElevatedButton(
                     onPressed: _saveAttendance,
-                    child: Text("Save Attendance"),
+                    child: Text(existingAttendanceDocId != null
+                        ? "Update Attendance"
+                        : "Save Attendance"),
                   ),
                 ),
               ],
