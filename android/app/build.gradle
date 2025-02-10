@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.surtaal_app"
+    namespace = "com.au.surtaal.admin"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -24,27 +24,37 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.surtaal_app"
+        applicationId = "com.au.surtaal.admin"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 19
+        minSdk = 34
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 3
+        versionName = "1.0.1"
         
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
-        }
+    signingConfigs {
+    release {
+        def keystorePropertiesFile = rootProject.file("key.properties")
+        def keystoreProperties = new Properties()
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+        storeFile file("../../keystore.jks")
+        storePassword "Viraj5@2018"
+        keyAlias "key"
+        keyPassword "Viraj5@2018"
     }
 }
 
+buildTypes {
+    release {
+        signingConfig signingConfigs.release
+        minifyEnabled false
+        shrinkResources false
+    }
+}
+}
 flutter {
     source = "../.."
 }
-apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.gms.google-services';

@@ -1,18 +1,24 @@
 {
   "project_info": {
     "project_number": "685933490724",
+    "firebase_url": "https://surtaal-2326f-default-rtdb.firebaseio.com",
     "project_id": "surtaal-2326f",
     "storage_bucket": "surtaal-2326f.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:685933490724:android:1246d78e4d5227d7badeb1",
+        "mobilesdk_app_id": "1:685933490724:android:673d7ff808ca4b26badeb1",
         "android_client_info": {
-          "package_name": "com.example.surtaal_app"
+          "package_name": "com.au.surtaal.admin"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "685933490724-o6mvp6vfc1kbg52g1r47caqinjmc3bur.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBomISbAxf8iEL7Jz2i0vQ4f862pobhFqE"
@@ -20,7 +26,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "685933490724-o6mvp6vfc1kbg52g1r47caqinjmc3bur.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "685933490724-dgl5fkl7gie42b3jkpbojs6bfoeme7s0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.surtaalApp"
+              }
+            }
+          ]
         }
       }
     }

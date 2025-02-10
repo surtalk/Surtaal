@@ -154,14 +154,16 @@ class _LoginScreenState extends State<LoginScreen> {
               curve: Curves.easeIn, // Smooth ease-in effect
               child: Image.asset(
                 'assets/images/surtaal_logo.jpg', // Ensure your logo is in the assets folder
-                width: 120,
-                height: 120,
+                width: 180,
+                height: 180,
                 fit: BoxFit.contain,
               ),
             ),
 
             SizedBox(height: 20), // Space between logo and form fields
-        Expanded(
+         Center(     
+        child: Form(
+          key: _formKey,
               child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -210,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 50,  // Adjust the size of the logo
                         ),                        
                       ],
-                    ),
+                    ),              
               ),
               TextButton(
                 onPressed: () {
@@ -230,6 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
+         )
       ]
       ),    
     ),

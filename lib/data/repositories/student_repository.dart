@@ -4,7 +4,7 @@ class StudentRepository {
  final CollectionReference studentsCollection =
       FirebaseFirestore.instance.collection('students');
 
-Future<void> addStudent(String name, String myobId, String phone, DateTime dob, String email, DateTime startDate) async {
+Future<void> addStudent(String name, String myobId, String phone, DateTime dob, String email, DateTime startDate, String imageUrl) async {
   await studentsCollection.add({
     'name': name,
     'myob_Id': myobId,
@@ -12,6 +12,7 @@ Future<void> addStudent(String name, String myobId, String phone, DateTime dob, 
     'dob': Timestamp.fromDate(dob),
     'email': email,
     'startDate': Timestamp.fromDate(startDate),    
+    'imageUrl': imageUrl ?? '', 
   }).then((docRef) {
     print("Student added with ID: ${docRef.id}");
   }).catchError((error) {
@@ -19,7 +20,7 @@ Future<void> addStudent(String name, String myobId, String phone, DateTime dob, 
   });
 }
 // Update Student
-  Future<void> updateStudent(String docId, String name, String myobId, String phone, DateTime dob, String email, DateTime startDate) async {
+  Future<void> updateStudent(String? docId, String name, String myobId, String phone, DateTime dob, String email, DateTime startDate,String imageUrl) async {
     await studentsCollection.doc(docId).update({
       'name': name,
       'myob_Id': myobId,
@@ -27,6 +28,7 @@ Future<void> addStudent(String name, String myobId, String phone, DateTime dob, 
       'dob': Timestamp.fromDate(dob),
       'email': email,
       'startDate': Timestamp.fromDate(startDate),  
+       'imageUrl': imageUrl ?? '', 
     });
   }
 

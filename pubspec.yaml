@@ -1,7 +1,7 @@
 name: surtaal_app
-description: "A new Flutter project."
-publish_to: 'none'
-version: 0.1.0
+description: "Surtaal Admin app to manage clases"
+publish_to: 'andriod ios web'
+version: 1.0.2+2
 
 environment:
   sdk: ^3.6.1
@@ -17,6 +17,9 @@ dependencies:
   google_sign_in: ^6.2.2
   lottie: ^2.2.0
   animated_background: ^2.0.0
+  flutter_launcher_icons: ^0.14.3 
+  image_picker: ^1.1.2
+  permission_handler: ^11.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -28,3 +31,6 @@ flutter:
     - assets/google_logo.png
     - assets/images/surtaal_logo.jpg
     - assets/launch_animation.json
+flutter_icons:
+  android: true
+  image_path: "assets/images/surtaal_logo.jpg"
