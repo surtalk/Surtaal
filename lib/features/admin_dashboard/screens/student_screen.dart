@@ -120,9 +120,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
             itemBuilder: (context, index) {
               var student = students[index];
               DateTime dob = (student.dob).toDate();
-              //String formattedDob = "${student.dob.day}-${student.dob.month}-${student.dob.year}";
+              String formattedDob = "${dob.day}-${dob.month}-${dob.year}";
 
-              //DateTime startDate = (student.startDate as Timestamp).toDate();
+              DateTime startDate = (student.startDate).toDate();
               //String formattedstartDate = "${student.startDate.day}-${student.startDate.month}-${student.startDate.year}";
 
               return Card(
@@ -132,7 +132,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   radius: 30,
                 ),
                   title: Text(student.name),
-                  subtitle: Text("MYOB ID: ${student.myobId} | Phone: ${student.mobile} | E-mail: ${student.email}"),
+                  subtitle: Text("MYOB ID: ${student.myobId} | Phone: ${student.mobile} | E-mail: ${student.email} | DOB: $formattedDob"),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -144,7 +144,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           phone: student.mobile,
                           email: student.email,
                           dob: dob,
-                          startDate: null,                          
+                          startDate: startDate,                          
                         );
                       }),
                       IconButton(icon: Icon(Icons.delete, color: Colors.red), onPressed: () {

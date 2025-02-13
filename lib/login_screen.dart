@@ -197,23 +197,23 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
                 
               // Google Sign-In Button
-              ElevatedButton(
-                onPressed: () async {
-                  User? user = await signInWithGoogle();
-                  if (user != null) {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));                   
-                  }
-                },
-                 child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Image.asset(
-                          'assets/google_logo.png',  // Path to your Google logo
-                          height: 50,  // Adjust the size of the logo
-                        ),                        
-                      ],
-                    ),              
-              ),
+              // ElevatedButton(
+              //   onPressed: () async {
+              //     User? user = await signInWithGoogle();
+              //     if (user != null) {
+              //       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));                   
+              //     }
+              //   },
+              //    child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.center,
+              //         children: <Widget>[
+              //           Image.asset(
+              //             'assets/google_logo.png',  // Path to your Google logo
+              //             height: 50,  // Adjust the size of the logo
+              //           ),                        
+              //         ],
+              //       ),              
+              // ),
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignupScreen()));

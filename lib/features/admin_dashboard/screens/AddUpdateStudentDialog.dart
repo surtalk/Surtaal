@@ -93,12 +93,12 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
                 final pickedFile = await _picker.pickImage(source: ImageSource.camera);    
                  print("Image selected: ${pickedFile!.path}");  // Debugging             
                 if (pickedFile != null) {  
-                    Future.delayed(Duration(milliseconds: 500), () {               
-                  //final bytes = await pickedFile.readAsBytes();
-                  setState(() {
+                    final bytes = await pickedFile.readAsBytes();
+                    Future.delayed(Duration(milliseconds: 1500), () { 
+                     setState(() {
                      print("set stage after a delay:");
                     _image = File(pickedFile!.path);
-                   // _imageBytes = bytes;
+                    _imageBytes = bytes;
                   });
                   });
                 }
