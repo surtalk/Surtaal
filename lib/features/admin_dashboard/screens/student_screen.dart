@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/repositories/student_repository.dart';
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import '../../../data/models/student_model.dart';
 import 'dart:typed_data';
 import 'AddUpdateStudentDialog.dart';
 
@@ -12,19 +12,6 @@ class StudentsScreen extends StatefulWidget {
   _StudentsScreenState createState() => _StudentsScreenState();
 }
   
-
-  class Student {
-  String name;
-  String imageUrl;
-  String docId;
-  String myobId;
-  String mobile;
-  String email;
-  Timestamp dob;
-  Timestamp startDate; 
-  Student({required this.name, required this.imageUrl,required this.docId,required this.myobId,required this.mobile,required this.email,required this.dob, required this.startDate});
-}
-
 
 class _StudentsScreenState extends State<StudentsScreen> {
   final StudentRepository _firestoreService = StudentRepository();

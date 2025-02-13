@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../data/models/student_model.dart';
+import 'add_student_to_class.dart';
 
 ///
 /// ClassDetailScreen: Displays the details of a specific class and allows the admin to manage the student list.
@@ -17,6 +19,11 @@ class ClassDetailScreen extends StatefulWidget {
 
 class _ClassDetailScreenState extends State<ClassDetailScreen> {
   final TextEditingController _studentController = TextEditingController();
+  TextEditingController searchController = TextEditingController();
+  List<Student> allStudents = []; 
+  List<Student> filteredStudents = [];
+
+ 
 
 // Adds a student to the class document.
   // Here, we store a map with the student's id and name.
@@ -38,66 +45,13 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
       'students': FieldValue.arrayRemove([studentData]),
     });
   }
-  // Show a dialog that displays a list of existing students from Firestore.
-  // The admin can tap one to add them to the class.
-  void _showAddStudentDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Select a Student"),
-          content: Container(
-            // Set a fixed height for the list
-            height: 300,
-            width: double.maxFinite,
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('students')
-                  .orderBy('name')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                }
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                final studentDocs = snapshot.data!.docs;
-                if (studentDocs.isEmpty) {
-                  return Center(child: Text("No students found."));
-                }
-                return ListView.builder(
-                  itemCount: studentDocs.length,
-                  itemBuilder: (context, index) {
-                    var doc = studentDocs[index];
-                    // Create a student data map.
-                    Map<String, dynamic> studentData = {
-                      'id': doc.id,
-                      'name': doc['name'],
-                    };
-                    return ListTile(
-                      title: Text(doc['name']),
-                      onTap: () async {
-                        // Add the selected student to the class.
-                        await _addStudent(studentData);
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
+void openAddStudentDialog(BuildContext context, String classId) {
+  showDialog(
+    context: context,
+    builder: (context) => AddStudentDialog(classId: classId),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +95,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: _showAddStudentDialog,
+                 onPressed: () => openAddStudentDialog(context, widget.classDocId),
                   child: Text("Add Student from List"),
                 ),
               ),
