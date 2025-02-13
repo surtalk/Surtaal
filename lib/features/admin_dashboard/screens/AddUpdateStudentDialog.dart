@@ -1,7 +1,6 @@
 
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/repositories/student_repository.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -11,13 +10,14 @@ class AddStudentDialog extends StatefulWidget {
 
   String? existingName;
   String? studentId;
-String? myobId;
-String? phone;
-DateTime? dob;
-String? email;
-DateTime? startDate;
+  String? myobId;
+  String? phone;
+  DateTime? dob;
+  String? email;
+  DateTime? startDate;
+  String? imageUrl;
 
-   AddStudentDialog({this.existingName, this.studentId, this.myobId, this.phone, this.dob, this.email, this.startDate});
+   AddStudentDialog({this.existingName, this.studentId, this.myobId, this.phone, this.dob, this.email, this.startDate, this.imageUrl});
 
   @override
   _AddupdatestudentdialogState createState() => _AddupdatestudentdialogState();
@@ -32,6 +32,8 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
   DateTime? _selectedDob;
   DateTime? _startDate;
   String? docId;
+   String? imageUrl;
+
   @override
   void initState() {
     super.initState();
@@ -39,16 +41,21 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
     _myobIdController = TextEditingController(text: widget.myobId ?? "");
     _phoneController = TextEditingController(text: widget.phone ?? "");
     _emailController = TextEditingController(text: widget.email ?? "");
-    _selectedDob = widget.dob;
+    _selectedDob = widget.dob;    
     _startDate = widget.startDate;
     docId = widget.studentId;
+    imageUrl=widget.imageUrl;
+
+    dobController.text="${_selectedDob!.day}/${_selectedDob!.month}/${_selectedDob!.year}";
+    startDateController.text="${_startDate!.day}/${_startDate!.month}/${_startDate!.year}";
   }
 
     TextEditingController dobController = TextEditingController();
+
     void _selectDate(BuildContext context) async {
       DateTime? picked = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
+        initialDate: _selectedDob ?? DateTime.now(),
         firstDate: DateTime(1900),
         lastDate: DateTime(2100),
       );
@@ -63,7 +70,7 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
     void _selectStartDateDate(BuildContext context) async {
       DateTime? picked = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
+        initialDate: _startDate ??DateTime.now(),
         firstDate: DateTime(1900),
         lastDate: DateTime(2100),
       );   
@@ -182,10 +189,9 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
                     backgroundColor: Colors.grey[300],
                     backgroundImage: _imageBytes != null
                         ? MemoryImage(_imageBytes!) // Display image from bytes
-                        : null,
-                    child: (_imageBytes == null)
-                        ? Icon(Icons.camera_alt, size: 40, color: Colors.white)
-                        : null,
+                        : (imageUrl != null
+                          ? NetworkImage(imageUrl!)
+                          : null),                    
                   ),
                 ),                   
             SizedBox(height: 20),            

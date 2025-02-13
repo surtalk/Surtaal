@@ -87,10 +87,17 @@ class _ClassesManagementScreenState extends State<ClassesManagementScreen> {
           return ListView.builder(
             itemCount: classDocs.length,
             itemBuilder: (context, index) {
-              var doc = classDocs[index];
+             
+              DocumentSnapshot doc = classDocs[index];
+              String className = doc['name'];
+              List<dynamic> students = doc['students'] ?? [];
+              int studentCount = students.length;             
               return ListTile(
-                title: Text(doc['name']),
-                trailing: IconButton(
+                title: Text('$className - $studentCount Students'),
+                 subtitle: studentCount > 0 ? Text('Students are enrolled') : null,
+                trailing:studentCount > 0
+                ? null  // Hide delete button if students are in the class
+                : IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () => _deleteClass(doc.id),
                 ),

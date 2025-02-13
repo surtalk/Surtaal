@@ -41,16 +41,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
   // Show Add/Edit Dialog 
   void _showStudentDialog(BuildContext context,{String? docId, String? name, String? myobId, String? phone,
-   DateTime? dob, String? email, DateTime? startDate}) {
-
+   DateTime? dob, String? email, DateTime? startDate, String? imageUrl}) {
      showDialog(
       context: context,
       builder: (context) {
         return AddStudentDialog(existingName: name, studentId: docId , myobId:  myobId, phone :phone,
-   dob: dob, email:  email, startDate:  startDate);
+                                dob: dob, email:  email, startDate:  startDate ,imageUrl: imageUrl);
       },
     );   
-
    }
 
   // Delete Student Confirmation
@@ -108,7 +106,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
               var student = students[index];
               DateTime dob = (student.dob).toDate();
               String formattedDob = "${dob.day}-${dob.month}-${dob.year}";
-
               DateTime startDate = (student.startDate).toDate();
               //String formattedstartDate = "${student.startDate.day}-${student.startDate.month}-${student.startDate.year}";
 
@@ -131,7 +128,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
                           phone: student.mobile,
                           email: student.email,
                           dob: dob,
-                          startDate: startDate,                          
+                          startDate: startDate,  
+                          imageUrl:student.imageUrl,                        
                         );
                       }),
                       IconButton(icon: Icon(Icons.delete, color: Colors.red), onPressed: () {
