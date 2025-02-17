@@ -46,11 +46,11 @@ class _ClassDetailScreenState extends State<ClassDetailScreen> {
     });
   }
 
-void openAddStudentDialog(BuildContext context, String classId) {
+Future<void> openAddStudentDialog(BuildContext context, String classId) async {
   showDialog(
     context: context,
     builder: (context) => AddStudentDialog(classId: classId),
-  );
+  );  
 }
 
   @override
@@ -95,7 +95,10 @@ void openAddStudentDialog(BuildContext context, String classId) {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                 onPressed: () => openAddStudentDialog(context, widget.classDocId),
+                  onPressed: () async {
+                    await  openAddStudentDialog(context, widget.classDocId); // Wait for dialog to close
+                    setState(() {}); // 👈 Always refresh after dialog closes
+                  },                 
                   child: Text("Add Student from List"),
                 ),
               ),

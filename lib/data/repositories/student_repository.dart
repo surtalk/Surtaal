@@ -9,9 +9,9 @@ Future<void> addStudent(String name, String myobId, String phone, DateTime dob, 
     'name': name,
     'myob_Id': myobId,
     'mobile': phone,
-    'dob': Timestamp.fromDate(dob),
+    'dob': Timestamp.fromDate(dob?? DateTime(2000, 1, 1)),
     'email': email,
-    'startDate': Timestamp.fromDate(startDate),    
+    'startDate': Timestamp.fromDate(startDate?? DateTime(2000, 1, 1)),    
     'imageUrl': imageUrl ?? '', 
   }).then((docRef) {
     print("Student added with ID: ${docRef.id}");
@@ -25,10 +25,10 @@ Future<void> addStudent(String name, String myobId, String phone, DateTime dob, 
       'name': name,
       'myob_Id': myobId,
       'mobile': phone,
-      'dob': Timestamp.fromDate(dob),
+      'dob': Timestamp.fromDate(dob?? DateTime(2000, 1, 1)),
       'email': email,
-      'startDate': Timestamp.fromDate(startDate),  
-       'imageUrl': imageUrl ?? '', 
+      'startDate': Timestamp.fromDate(startDate?? DateTime(2000, 1, 1)),
+      'imageUrl': imageUrl ?? '', 
     });
   }
 

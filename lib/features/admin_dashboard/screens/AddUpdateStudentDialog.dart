@@ -1,4 +1,3 @@
-
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../data/repositories/student_repository.dart';
@@ -23,6 +22,8 @@ class AddStudentDialog extends StatefulWidget {
   _AddupdatestudentdialogState createState() => _AddupdatestudentdialogState();
 }
 class _AddupdatestudentdialogState extends State<AddStudentDialog> {
+   bool isSaving = false; // Track saving state
+    final _formKey = GlobalKey<FormState>(); // Form key for validation
    final StudentRepository _firestoreService = StudentRepository();
 // Controllers
    late TextEditingController _nameController;
@@ -32,8 +33,10 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
   DateTime? _selectedDob;
   DateTime? _startDate;
   String? docId;
-   String? imageUrl;
-
+  String? imageUrl;
+  TextEditingController dobController = TextEditingController();
+  TextEditingController startDateController = TextEditingController();
+  
   @override
   void initState() {
     super.initState();
@@ -45,12 +48,13 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
     _startDate = widget.startDate;
     docId = widget.studentId;
     imageUrl=widget.imageUrl;
-
-    dobController.text="${_selectedDob!.day}/${_selectedDob!.month}/${_selectedDob!.year}";
-    startDateController.text="${_startDate!.day}/${_startDate!.month}/${_startDate!.year}";
-  }
-
-    TextEditingController dobController = TextEditingController();
+    if(_selectedDob !=null){
+        dobController.text="${_selectedDob!.day}/${_selectedDob!.month}/${_selectedDob!.year}";
+    }
+    if(_startDate !=null){
+        startDateController.text="${_startDate!.day}/${_startDate!.month}/${_startDate!.year}";
+    }
+      }    
 
     void _selectDate(BuildContext context) async {
       DateTime? picked = await showDatePicker(
@@ -65,7 +69,7 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
         dobController.text = "${picked!.day}/${picked!.month}/${picked!.year}"; // Format date
       });
       }
-    TextEditingController startDateController = TextEditingController();
+    
     
     void _selectStartDateDate(BuildContext context) async {
       DateTime? picked = await showDatePicker(
@@ -142,18 +146,27 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
   Widget build(BuildContext context) {
         return AlertDialog(
           title: Text(docId == null ? "Add Student" : "Edit Student"),
-          content: SingleChildScrollView(
+          content: Form(
+            key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                TextField(controller: _nameController, decoration: InputDecoration(labelText: "Name")),
-                TextField(controller: _myobIdController, decoration: InputDecoration(labelText: "MYOB ID")),
-                TextField(controller: _phoneController, decoration: InputDecoration(labelText: "Mobile")),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: "Name"),
+                  validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Name is required";
+                        }
+                        return null;
+                      },),
+                TextFormField(controller: _myobIdController, decoration: InputDecoration(labelText: "MYOB ID")),
+                TextFormField(controller: _phoneController, decoration: InputDecoration(labelText: "Mobile")),
                 TextFormField(controller: _emailController, 
                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(labelText: "Email"),
                           ),
-                TextField(
+                TextFormField(
                 controller: dobController,
                 readOnly: true, // Prevent manual input
                 decoration: InputDecoration(
@@ -164,9 +177,15 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
                     onPressed: () => _selectDate(context),
                   ),
                 ),
+                validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Date of Birth is required";
+                        }
+                        return null;
+                      },
                 ),
                 SizedBox(height: 20),                
-                TextField(
+                TextFormField(
                 controller: startDateController,
                 readOnly: true, // Prevent manual input
                 decoration: InputDecoration(
@@ -177,6 +196,12 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
                     onPressed: () => _selectStartDateDate(context),
                   ),
                 ),
+                validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Start Date is required";
+                        }
+                        return null;
+                      },
                 ),
                 SizedBox(height: 20),
                 GestureDetector(
@@ -202,33 +227,53 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
-            TextButton(             
-              onPressed: () async { 
-                String? imageUrl;
-               print("on save the image url: ${imageUrl}"); 
-                if (_nameController.text.isNotEmpty && _myobIdController.text.isNotEmpty && _phoneController.text.isNotEmpty && _selectedDob != null) {
-                  if (_imageBytes != null) {
-                      final storageRef = FirebaseStorage.instance.ref().child('students').child(DateTime.now().toString());
-                      await storageRef.putData(_imageBytes!);
-                      imageUrl = await storageRef.getDownloadURL();                      
-                    }
-                  if (docId == null) {
-                    _firestoreService.addStudent(
-                      _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, _emailController.text, _startDate! , imageUrl!
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student added successfully")));
-                  } else {
-                    _firestoreService.updateStudent(
-                      docId, _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, _emailController.text, _startDate!, imageUrl!
-                    );
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student updated successfully")));
-                  }
-                  Navigator.pop(context);
-                }
-              },
-              child: Text(docId == null ? "Add" : "Update"),
-            ),
+             isSaving
+                ? CircularProgressIndicator() // Show loading when saving
+                : ElevatedButton(
+                    onPressed: saveStudentData,
+                    child: Text(docId == null ? "Add" : "Update"),
+                  ),           
           ],
         );
+      }
+
+      Future<void> saveStudentData() async {
+         if (!_formKey.currentState!.validate()) {
+              return; // Stop if validation fails
+           }
+          setState(() {
+            isSaving = true; // Show loading
+          });                
+        if (_nameController.text.isNotEmpty) {
+          if (_imageBytes != null) {
+              final storageRef = FirebaseStorage.instance.ref().child('students').child(DateTime.now().toString());
+              await storageRef.putData(_imageBytes!);
+              imageUrl = await storageRef.getDownloadURL();   
+              
+                print("came to update and got image ur ${imageUrl}");               
+            }
+            print("didnot saved new image  ${imageUrl}");     
+          if (docId == null) {
+            _firestoreService.addStudent(
+              _nameController.text,
+              _myobIdController.text.trim().isNotEmpty?_myobIdController.text.trim():"TBC",
+              _phoneController.text.trim().isNotEmpty?_phoneController.text.trim():"TBC",
+              _selectedDob!, // default value is getting set before save
+              _emailController.text.trim().isNotEmpty?_emailController.text.trim():"TBC",
+              _startDate!,
+               imageUrl!
+            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student added successfully")));
+          } else {
+            _firestoreService.updateStudent(
+              docId, _nameController.text, _myobIdController.text, _phoneController.text, _selectedDob!, _emailController.text, _startDate!, imageUrl!
+            );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student updated successfully")));
+          }                   
+          Navigator.pop(context, true); 
+        }
+        setState(() {
+            isSaving = false; // Hide loading
+          });
       }
 }
