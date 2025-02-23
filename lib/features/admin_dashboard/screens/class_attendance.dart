@@ -257,15 +257,44 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                           break;
                         }
                       }
-                      return CheckboxListTile(
-                        title: Text(studentName),
-                        value: present,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            attendance[studentId] = value ?? false;
-                          });
-                        },
-                      );
+                    return FutureBuilder<String>(
+                                future: _fetchStudentImage(studentId),
+                                builder: (context, snapshot) {
+                                  final imageUrl = snapshot.data ?? "";
+
+                                  return GestureDetector(
+                                    onLongPress: () => _showStudentImage(context, studentId, studentName),
+                                    child: CheckboxListTile(
+                                      title: Text(studentName),
+                                      secondary: CircleAvatar(
+                                        backgroundImage: imageUrl.isNotEmpty
+                                            ? NetworkImage(imageUrl)
+                                            : AssetImage("assets/images/surtaal_logo.jpg") as ImageProvider,
+                                      ),
+                                      value: present,
+                                      onChanged: (bool? value) {
+                                          setState(() {
+                                              attendance[studentId] = value ?? false;
+                                            });
+                                        },
+                                    ),
+                                  );
+                                },
+                              );
+
+                      // return CheckboxListTile(
+                      //   title: Text(studentName),
+                      //   value: present,
+                      //   onChanged: (bool? value) {
+                      //     setState(() {
+                      //       attendance[studentId] = value ?? false;
+                      //     });
+                      //   },
+                      // );
+
+
+
+
                     },
                   ),
                 ],
@@ -283,6 +312,44 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
           );
         },
       ),
+    );
+  }
+
+  Future<String> _fetchStudentImage(String studentId) async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection("students").doc(studentId).get();
+      if (doc.exists && doc.data()!.containsKey("imageUrl")) {
+        return doc["imageUrl"];
+      }
+    } catch (e) {
+      print("Error fetching image: $e");
+    }
+    return ""; // Return empty string if no image found
+  }
+
+  void _showStudentImage(BuildContext context, String studentId, String studentName) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return FutureBuilder<String>(
+          future: _fetchStudentImage(studentId),
+          builder: (context, snapshot) {
+            String imageUrl = snapshot.data ?? "";
+            return AlertDialog(
+              title: Text(studentName),
+              content: imageUrl.isNotEmpty
+                  ? Image.network(imageUrl, fit: BoxFit.cover)
+                  : Image.asset("assets/images/surtaal_logo.jpg", fit: BoxFit.cover),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Close"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
