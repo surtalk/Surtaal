@@ -4,8 +4,9 @@ class StudentRepository {
  final CollectionReference studentsCollection =
       FirebaseFirestore.instance.collection('students');
 
-Future<DocumentReference?> addStudent(String name, String myobId, String phone, DateTime dob, String email, DateTime startDate, String imageUrl) async {
-  return await studentsCollection.add({
+Future<void> addStudent(String name, String myobId, String phone, DateTime dob, String email, DateTime startDate, String imageUrl, String selectedClassId) async {
+  
+  await studentsCollection.add({
     'name': name,
     'myob_Id': myobId,
     'mobile': phone,
@@ -14,10 +15,16 @@ Future<DocumentReference?> addStudent(String name, String myobId, String phone, 
     'startDate': Timestamp.fromDate(startDate?? DateTime(2000, 1, 1)),    
     'imageUrl': imageUrl ?? '', 
   }).then((docRef) {
-    print("Student added with ID: ${docRef.id}");
+     print("Student added with ID: ${docRef.id}");
+     FirebaseFirestore.instance.collection('classes').doc(selectedClassId).update({
+            'students': FieldValue.arrayUnion([
+              {'id': docRef.id, 'name': name}
+            ])
+          });
+   
   }).catchError((error) {
     print("Error adding student: $error");
-  });
+  }); 
 }
 // Update Student
   Future<void> updateStudent(String? docId, String name, String myobId, String phone, DateTime dob, String email, DateTime startDate,String imageUrl) async {

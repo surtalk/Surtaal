@@ -291,20 +291,17 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
             }
             print("didnot saved new image  ${imageUrl}");     
           if (docId == null) {
-             DocumentReference? studentRef = await _firestoreService.addStudent(
+             await _firestoreService.addStudent(
               _nameController.text,
               _myobIdController.text.trim().isNotEmpty?_myobIdController.text.trim():"TBC",
               _phoneController.text.trim().isNotEmpty?_phoneController.text.trim():"TBC",
               _selectedDob!, // default value is getting set before save
               _emailController.text.trim().isNotEmpty?_emailController.text.trim():"TBC",
               _startDate!,
-               imageUrl!
+               imageUrl!,
+               selectedClassId!
             );
-                await FirebaseFirestore.instance.collection('classes').doc(selectedClassId).update({
-            'students': FieldValue.arrayUnion([
-              {'id': studentRef?.id, 'name': _nameController.text}
-            ])
-          });
+            
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student added successfully")));
           } else {
             _firestoreService.updateStudent(
