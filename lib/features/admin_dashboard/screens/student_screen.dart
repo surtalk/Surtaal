@@ -1,10 +1,10 @@
-import 'package:image_picker/image_picker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/repositories/student_repository.dart';
-import 'dart:io';
+
 import '../../../data/models/student_model.dart';
-import 'dart:typed_data';
+
 import 'AddUpdateStudentDialog.dart';
 
 class StudentsScreen extends StatefulWidget {
@@ -15,29 +15,14 @@ class StudentsScreen extends StatefulWidget {
 
 class _StudentsScreenState extends State<StudentsScreen> {
   final StudentRepository _firestoreService = StudentRepository();
+  List<String> studentsInClasses = []; // Student IDs in classes
+   bool showUnassignedOnly = false; // Checkbox state
 
-    /// Load student data and get image bytes from Firestore
-  Future<Uint8List?> _loadStudentData(studentId) async {
-     Uint8List? _imageBytes = null;
-    DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-        .collection('students')
-        .doc(studentId)
-        .get();
-
-    if (studentDoc.exists) {
-      if (studentDoc['imageBytes'] != null) {
-        setState(() {
-          _imageBytes = Uint8List.fromList(List<int>.from(studentDoc['imageBytes']));
-        });
-      }
-    }
-    return _imageBytes;
+ @override
+  void initState() {
+    super.initState();  
+    fetchStudentsInClasses();
   }
-
-  
- 
-  final ImagePicker _picker = ImagePicker();
-  File? _image = null;
 
   // Show Add/Edit Dialog 
   void _showStudentDialog(BuildContext context,{String? docId, String? name, String? myobId, String? phone,
@@ -75,16 +60,32 @@ class _StudentsScreenState extends State<StudentsScreen> {
   }
 
 
- // Simulate fetching students from Firestore
-  
-
-
 // section to display list of student 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Students")),
-      body: FutureBuilder<List<Student>>(
+      body: Column(
+        children: [
+          // Checkbox to filter unassigned students
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Checkbox(
+                value: showUnassignedOnly,
+                onChanged: (bool? value) {
+                  setState(() {
+                    showUnassignedOnly = value ?? false;
+                  });
+                },
+              ),
+              Text('Show students not in any class'),
+            ],
+          ),
+
+          // Fetch students from Firestore and display them
+          Expanded(
+            child: FutureBuilder<List<Student>>(
         future: _fetchStudents(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -100,10 +101,14 @@ class _StudentsScreenState extends State<StudentsScreen> {
           }
 
           var students = snapshot.data!;
+          // Filter students based on checkbox state
+          var filteredStudents = showUnassignedOnly
+              ? students.where((s) => !studentsInClasses.contains(s.docId)).toList()
+              : students;
           return ListView.builder(
-            itemCount: students.length,
+            itemCount: filteredStudents.length,
             itemBuilder: (context, index) {
-              var student = students[index];
+              var student = filteredStudents[index];
               DateTime dob = (student.dob).toDate();
               String formattedDob = "${dob.day}-${dob.month}-${dob.year}";
               DateTime startDate = (student.startDate).toDate();
@@ -144,11 +149,15 @@ class _StudentsScreenState extends State<StudentsScreen> {
           );
         },
       ),
+       ),
+        ],
+      ),   
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () => _showStudentDialog(context)  
       )       
-      );    
+      );   
+       
   }
   
 Future<List<Student>> _fetchStudents() async {
@@ -169,5 +178,23 @@ Future<List<Student>> _fetchStudents() async {
     }
       return students;
     }  
+
+    /// Fetch student IDs assigned to classes
+  Future<void> fetchStudentsInClasses() async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('classes').get();
+
+    List<String> assignedStudents = [];
+
+    for (var doc in querySnapshot.docs) {
+      List studentsList = doc['students'] ?? [];
+      assignedStudents.addAll(
+          studentsList.map((s) => s['id'].toString()).toList());
+    }
+
+    setState(() {
+      studentsInClasses = assignedStudents.toSet().toList();
+    });
+  }
   
 }

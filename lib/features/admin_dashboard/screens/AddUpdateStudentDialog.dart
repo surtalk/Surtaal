@@ -4,6 +4,7 @@ import '../../../data/repositories/student_repository.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddStudentDialog extends StatefulWidget {
 
@@ -15,8 +16,9 @@ class AddStudentDialog extends StatefulWidget {
   String? email;
   DateTime? startDate;
   String? imageUrl;
+  String? selectedClassId;
 
-   AddStudentDialog({this.existingName, this.studentId, this.myobId, this.phone, this.dob, this.email, this.startDate, this.imageUrl});
+   AddStudentDialog({this.existingName, this.studentId, this.myobId, this.phone, this.dob, this.email, this.startDate, this.selectedClassId, this.imageUrl});
 
   @override
   _AddupdatestudentdialogState createState() => _AddupdatestudentdialogState();
@@ -34,12 +36,16 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
   DateTime? _startDate;
   String? docId;
   String? imageUrl;
+  String? selectedClassId;
+  
   TextEditingController dobController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
+  List<Map<String, dynamic>> classList = []; // Stores fetched classes
   
   @override
   void initState() {
     super.initState();
+    fetchClasses();
     _nameController = TextEditingController(text: widget.existingName ?? "");
     _myobIdController = TextEditingController(text: widget.myobId ?? "");
     _phoneController = TextEditingController(text: widget.phone ?? "");
@@ -47,6 +53,7 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
     _selectedDob = widget.dob;    
     _startDate = widget.startDate;
     docId = widget.studentId;
+    selectedClassId = widget.selectedClassId;
     imageUrl=widget.imageUrl;
     if(_selectedDob !=null){
         dobController.text="${_selectedDob!.day}/${_selectedDob!.month}/${_selectedDob!.year}";
@@ -70,6 +77,19 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
       });
       }
     
+     /// Fetch available classes from Firestore
+      Future<void> fetchClasses() async {
+        QuerySnapshot querySnapshot =
+            await FirebaseFirestore.instance.collection('classes').get();            
+
+        List<Map<String, dynamic>> fetchedClasses = querySnapshot.docs
+            .map((doc) => {'id': doc.id, 'name': doc['name']})
+            .toList();
+
+        setState(() {
+          classList = fetchedClasses;
+        });
+      }
     
     void _selectStartDateDate(BuildContext context) async {
       DateTime? picked = await showDatePicker(
@@ -204,6 +224,23 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
                       },
                 ),
                 SizedBox(height: 20),
+                 // Class Dropdown
+                  if (widget.studentId == null) 
+          DropdownButtonFormField<String>(
+            value: selectedClassId,
+            items: classList
+                .map((cls) => DropdownMenuItem<String>(
+                      value: cls['id'],
+                      child: Text(cls['name']),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedClassId = value;
+              });
+            },
+            decoration: InputDecoration(labelText: 'Select Class'),
+          ),
                 GestureDetector(
                   onTap: () {
                     print("Image picker tapped!");  // Prints when the widget is tapped
@@ -254,7 +291,7 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
             }
             print("didnot saved new image  ${imageUrl}");     
           if (docId == null) {
-            _firestoreService.addStudent(
+             DocumentReference? studentRef = await _firestoreService.addStudent(
               _nameController.text,
               _myobIdController.text.trim().isNotEmpty?_myobIdController.text.trim():"TBC",
               _phoneController.text.trim().isNotEmpty?_phoneController.text.trim():"TBC",
@@ -263,6 +300,11 @@ class _AddupdatestudentdialogState extends State<AddStudentDialog> {
               _startDate!,
                imageUrl!
             );
+                await FirebaseFirestore.instance.collection('classes').doc(selectedClassId).update({
+            'students': FieldValue.arrayUnion([
+              {'id': studentRef?.id, 'name': _nameController.text}
+            ])
+          });
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Student added successfully")));
           } else {
             _firestoreService.updateStudent(

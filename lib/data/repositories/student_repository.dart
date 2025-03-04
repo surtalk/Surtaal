@@ -4,8 +4,8 @@ class StudentRepository {
  final CollectionReference studentsCollection =
       FirebaseFirestore.instance.collection('students');
 
-Future<void> addStudent(String name, String myobId, String phone, DateTime dob, String email, DateTime startDate, String imageUrl) async {
-  await studentsCollection.add({
+Future<DocumentReference?> addStudent(String name, String myobId, String phone, DateTime dob, String email, DateTime startDate, String imageUrl) async {
+  return await studentsCollection.add({
     'name': name,
     'myob_Id': myobId,
     'mobile': phone,
